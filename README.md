@@ -1,76 +1,67 @@
-ReachInbox – Email Scheduler
-A production-grade email scheduling system built as part of the ReachInbox hiring assignment.
-The application supports bulk email scheduling, delayed execution, rate limiting, and a clean dashboard UI, using modern backend and frontend practices.
+# 📧 ReachInbox – Email Scheduler
 
-🚀 Features Overview
-✅ Backend
+A **production-grade email scheduling system** built as part of the **ReachInbox hiring assignment**.
 
-Email scheduling using BullMQ + Redis (no cron jobs)
+The application supports **bulk email scheduling**, **delayed execution**, **rate limiting**, and a **clean dashboard UI**, using modern backend and frontend practices.
 
-Persistent jobs that survive server restarts
+---
 
-PostgreSQL for durable storage
+## 🚀 Features Overview
 
-Email sending via Ethereal SMTP
+### ✅ Backend
 
-Configurable:
+* Email scheduling using **BullMQ + Redis** (no cron jobs)
+* Persistent jobs that **survive server restarts**
+* **PostgreSQL** for durable storage
+* Email sending via **Ethereal SMTP**
+* Configurable:
 
-Worker concurrency
+  * Worker concurrency
+  * Delay between emails
+  * Hourly rate limits
+* **Redis-backed rate limiting** (safe across workers)
+* No duplicate or repeated email sends
 
-Delay between emails
+---
 
-Hourly rate limits
+### ✅ Frontend
 
-Redis-backed rate limiting (safe across workers)
+* **React + Tailwind CSS**
+* Real **Google OAuth login**
+* Dashboard with:
 
-No duplicate or repeated email sends
+  * Scheduled Emails
+  * Sent Emails
+* Compose Email modal
+* CSV / TXT upload & parsing
+* Bulk email scheduling with preview
+* Clean UI matching the provided **Figma design**
 
-✅ Frontend
+---
 
-React + Tailwind CSS
+## 🏗️ Tech Stack
 
-Real Google OAuth login
+### Backend
 
-Dashboard with:
+* Node.js (ES6 JavaScript)
+* Express.js
+* BullMQ
+* Redis
+* PostgreSQL
+* Nodemailer (Ethereal Email)
 
-Scheduled Emails
+### Frontend
 
-Sent Emails
+* React
+* Tailwind CSS
+* React Router
+* Google OAuth (Google Identity Services)
 
-Compose Email modal
+---
 
-CSV / TXT upload & parsing
+## 📁 Project Structure
 
-Bulk email scheduling with preview
-
-Clean UI matching the provided Figma
-
-🏗️ Tech Stack
-Backend
-
-Node.js (ES6 JavaScript)
-
-Express.js
-
-BullMQ
-
-Redis
-
-PostgreSQL
-
-Nodemailer (Ethereal Email)
-
-Frontend
-
-React
-
-Tailwind CSS
-
-React Router
-
-Google OAuth (Google Identity Services)
-
-📂 Project Structure
+```
 reachinbox-email-scheduler/
 ├── backend/
 │   ├── src/
@@ -91,13 +82,24 @@ reachinbox-email-scheduler/
 │   │   └── utils/
 │   └── package.json
 └── README.md
+```
 
-⚙️ Backend Setup
-1️⃣ Install Dependencies
+---
+
+## ⚙️ Backend Setup
+
+### 1️⃣ Install Dependencies
+
+```bash
 cd backend
 npm install
+```
 
-2️⃣ Environment Variables (backend/.env)
+---
+
+### 2️⃣ Environment Variables (`backend/.env`)
+
+```env
 PORT=5000
 
 DB_HOST=localhost
@@ -114,116 +116,120 @@ ETHEREAL_PASS=your_ethereal_pass
 EMAIL_RATE_LIMIT_PER_HOUR=200
 EMAIL_MIN_DELAY_MS=2000
 WORKER_CONCURRENCY=5
+```
 
-3️⃣ Start Redis
+---
+
+### 3️⃣ Start Redis
 
 Using Docker:
 
+```bash
 docker run -d -p 6379:6379 redis:7
+```
 
-4️⃣ Run Backend
+---
+
+### 4️⃣ Run Backend Server
+
+```bash
 npm run dev
+```
 
-🎨 Frontend Setup
-1️⃣ Install Dependencies
+---
+
+## 🎨 Frontend Setup
+
+### 1️⃣ Install Dependencies
+
+```bash
 cd frontend
 npm install
+```
 
-2️⃣ Start Frontend
+---
+
+### 2️⃣ Start Frontend
+
+```bash
 npm start
+```
 
+## 🔐 Google OAuth Setup
 
-Frontend runs at:
+1. Create a **Google Cloud Project**
+2. Configure **OAuth Consent Screen**
+3. Create **OAuth Client ID** (Web application)
+4. Add the following as **Authorized JavaScript Origin**:
 
-http://localhost:3000
-
-🔐 Google OAuth Setup
-
-Create a Google Cloud project
-
-Configure OAuth consent screen
-
-Create OAuth Client ID (Web)
-
-Add:
-
-http://localhost:3000
-
-
-as Authorized JavaScript Origin
 5. Use the Client ID in the frontend Google OAuth provider
 
-🧠 How Scheduling Works
+---
 
-User schedules emails from the frontend
+## 🧠 How Scheduling Works
 
-Each email is:
+1. User schedules emails from the frontend
+2. Each email is:
 
-Stored in PostgreSQL
+   * Stored in **PostgreSQL**
+   * Added to **BullMQ** as a delayed job
+3. BullMQ persists jobs in **Redis**
+4. Worker processes jobs when delay expires
+5. Rate limits are enforced using **Redis counters**
+6. Emails are sent via **Ethereal SMTP**
+7. Status updates to `sent` or `failed`
 
-Added to BullMQ as a delayed job
+✅ Jobs are **not lost on restart**
+✅ Emails are **never duplicated**
 
-BullMQ persists jobs in Redis
+---
 
-Worker processes jobs when delay expires
+## ⏱️ Rate Limiting & Concurrency
 
-Rate limits are enforced using Redis counters
+* **Concurrency**: Configurable BullMQ worker concurrency
+* **Delay Between Emails**: Configurable minimum delay (e.g. 2 seconds)
+* **Hourly Limit**:
 
-Emails are sent via Ethereal SMTP
-
-Status updates to sent or failed
-
-✅ Jobs are not lost on restart
-✅ Emails are never duplicated
-
-⏱️ Rate Limiting & Concurrency
-
-Concurrency: Configurable BullMQ worker concurrency
-
-Delay Between Emails: Configurable minimum delay (e.g. 2 seconds)
-
-Hourly Limit:
-
-Redis-backed counters per hour
-
-Jobs exceeding the limit are delayed, not dropped
+  * Redis-backed counters per hour
+  * Jobs exceeding the limit are delayed, not dropped
 
 Safe across:
 
-Multiple workers
+* Multiple workers
+* Server restarts
 
-Server restarts
+---
 
-🧪 Restart Safety
+## 🧪 Restart Safety
 
-Redis persists delayed jobs
+* Redis persists delayed jobs
+* PostgreSQL stores email metadata
+* Restarting the backend does **not resend or lose emails**
 
-PostgreSQL stores email metadata
+---
 
-Restarting backend does not resend or lose emails
+## 🎥 Demo Checklist (5 Minutes)
 
-🎥 Demo Checklist (5 Minutes)
+* Login with Google
+* Upload CSV & schedule emails
+* View Scheduled Emails
+* Restart backend server
+* Show emails still being sent
+* View Sent Emails
+* Open Ethereal inbox
 
-Login with Google
+---
 
-Upload CSV & schedule emails
+## 📝 Notes & Assumptions
 
-View Scheduled Emails
+* JavaScript (ES6) used instead of TypeScript for faster delivery
+* Architecture is **TypeScript-ready**
+* Ethereal Email used for safe testing
+* CSV parsing supports basic email lists
 
-Restart backend server
+---
 
-Show emails still being sent
+## ✅ Status
 
-View Sent Emails
-
-Open Ethereal inbox
-
-📝 Notes & Assumptions
-
-JavaScript (ES6) used instead of TypeScript for faster delivery
-
-Architecture is TypeScript-ready
-
-Ethereal Email used for safe testing
-
-CSV parsing supports basic email lists
+**Assignment Completed Successfully** ✅
+All required backend, frontend, and infrastructure features are implemented.
